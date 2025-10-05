@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONO Forecast - Air Quality Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            /* Dark Theme Colors */
+            --space-dark: #0b0b1d;
+            --space-blue: #1a1a3a;
+            --neon-blue: #00f3ff;
+            --neon-purple: #b967ff;
+            --planet-orange: #ff7b25;
+            --planet-yellow: #ffd166;
+            --accent: #00d4ff;
+            --danger: #ff2965;
+            --success: #00ff9d;
+            --warning: #ffbd39;
+            
+            /* Light Theme Colors */
+            --light-bg: #f8fafc;
+            --light-card: #ffffff;
+            --light-text: #1e293b;
+            --light-border: #e2e8f0;
+            --light-accent: #3b82f6;
+            --light-hover: #f1f5f9;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--space-dark), var(--space-blue));
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            transition: all 0.5s ease;
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, var(--light-bg), #e2e8f0);
+            color: var(--light-text);
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .light-theme .stars {
+            display: none;
+        }
+
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: twinkle 5s infinite ease-in-out;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideDown 1s ease;
+        }
+
+        .light-theme header {
+            border-bottom: 1px solid var(--light-border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--neon-blue);
+            animation: orbit 10s infinite linear;
+            position: relative;
+        }
+
+        .light-theme .logo-icon {
+            color: var(--light-accent);
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70px;
+            height: 70px;
+            border: 2px solid rgba(0, 243, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .light-theme .logo-icon::after {
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
+
+        .light-theme .logo h1 {
+            background: linear-gradient(to right, var(--light-accent), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .light-theme .theme-toggle {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            color: var(--light-text);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .light-theme .theme-toggle:hover {
+            background: var(--light-hover);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            padding: 5px 10px;
+        }
+
+        .light-theme nav a {
+            color: var(--light-text);
+            opacity: 0.8;
+        }
+
+        nav a:hover {
+            color: var(--neon-blue);
+        }
+
+        .light-theme nav a:hover {
+            color: var(--light-accent);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--neon-blue);
+            transition: width 0.3s;
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .light-theme nav a::after {
+            background: var(--light-accent);
+            box-shadow: 0 0 8px var(--light-accent);
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .city-selector {
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .city-selector label {
+            font-weight: 500;
+            color: var(--neon-blue);
+        }
+
+        .light-theme .city-selector label {
+            color: var(--light-accent);
+        }
+
+        .city-selector select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .light-theme .city-selector select {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            color: var(--light-text);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .city-selector select:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .light-theme .city-selector select:hover {
+            background: var(--light-hover);
+        }
+
+        .city-selector select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--neon-blue);
+        }
+
+        .light-theme .city-selector select:focus {
+            box-shadow: 0 0 0 2px var(--light-accent);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+            animation: fadeInUp 0.8s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light-theme .card {
+            background: var(--light-card);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--light-border);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.5s;
+        }
+
+        .light-theme .card::before {
+            background: linear-gradient(to right, var(--light-accent), #8b5cf6);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .light-theme .card:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--accent);
+        }
+
+        .light-theme .card-title i {
+            color: var(--light-accent);
+        }
+
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status.good {
+            background: rgba(0, 255, 157, 0.2);
+            color: var(--success);
+            box-shadow: 0 0 10px rgba(0, 255, 157, 0.3);
+        }
+
+        .light-theme .status.good {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+            box-shadow: none;
+        }
+
+        .status.moderate {
+            background: rgba(255, 189, 57, 0.2);
+            color: var(--warning);
+            box-shadow: 0 0 10px rgba(255, 189, 57, 0.3);
+        }
+
+        .light-theme .status.moderate {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+            box-shadow: none;
+        }
+
+        .status.poor {
+            background: rgba(255, 41, 101, 0.2);
+            color: var(--danger);
+            box-shadow: 0 0 10px rgba(255, 41, 101, 0.3);
+        }
+
+        .light-theme .status.poor {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+            box-shadow: none;
+        }
+
+        .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 15px 0;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .light-theme .value {
+            text-shadow: none;
+        }
+
+        .trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .trend.up {
+            color: var(--danger);
+        }
+
+        .light-theme .trend.up {
+            color: #dc2626;
+        }
+
+        .trend.down {
+            color: var(--success);
+        }
+
+        .light-theme .trend.down {
+            color: #059669;
+        }
+
+        .chart-container {
+            height: 200px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart {
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            padding: 0 10px;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--neon-blue), var(--neon-purple));
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            animation: grow 1.5s ease-out;
+            transform-origin: bottom;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .light-theme .bar {
+            background: linear-gradient(to top, var(--light-accent), #8b5cf6);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .light-theme .bar-label {
+            color: var(--light-text);
+            opacity: 0.7;
+        }
+
+        .maps-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .map-container {
+            height: 400px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            animation: zoomIn 1s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .light-theme .map-container {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .light-theme .map-overlay {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--light-border);
+        }
+
+        .map-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--neon-blue);
+        }
+
+        .light-theme .map-title {
+            color: var(--light-accent);
+        }
+
+        .legend {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+        }
+
+        .map-visualization {
+            width: 100%;
+            height: 100%;
+        }
+
+        .leaflet-container {
+            background: linear-gradient(45deg, #0d1b2a, #1b263b);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .light-theme .leaflet-container {
+            background: linear-gradient(45deg, #f8fafc, #e2e8f0);
+        }
+
+        .leaflet-popup-content {
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .forecast-container {
+            grid-column: 1 / -1;
+            margin-bottom: 40px;
+        }
+
+        .forecast-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--neon-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .light-theme .forecast-title {
+            color: var(--light-accent);
+        }
+
+        .forecast-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .forecast-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light-theme .forecast-card {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .forecast-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
+        }
+
+        .light-theme .forecast-card::before {
+            background: linear-gradient(to right, var(--light-accent), #8b5cf6);
+        }
+
+        .forecast-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .light-theme .forecast-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .forecast-time {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: var(--neon-blue);
+        }
+
+        .light-theme .forecast-time {
+            color: var(--light-accent);
+        }
+
+        .forecast-values {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+        }
+
+        .forecast-value {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .forecast-pollutant {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            opacity: 0.8;
+        }
+
+        .forecast-amount {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .o3-value {
+            color: var(--warning);
+        }
+
+        .light-theme .o3-value {
+            color: #d97706;
+        }
+
+        .no2-value {
+            color: var(--danger);
+        }
+
+        .light-theme .no2-value {
+            color: #dc2626;
+        }
+
+        .aqi-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .good {
+            background: rgba(0, 255, 157, 0.2);
+            color: var(--success);
+        }
+
+        .light-theme .good {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .moderate {
+            background: rgba(255, 189, 57, 0.2);
+            color: var(--warning);
+        }
+
+        .light-theme .moderate {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .poor {
+            background: rgba(255, 41, 101, 0.2);
+            color: var(--danger);
+        }
+
+        .light-theme .poor {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .light-theme footer {
+            border-top: 1px solid var(--light-border);
+            color: var(--light-text);
+            opacity: 0.7;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .light-theme .footer-links a {
+            color: var(--light-text);
+            opacity: 0.7;
+        }
+
+        .footer-links a:hover {
+            color: var(--neon-blue);
+        }
+
+        .light-theme .footer-links a:hover {
+            color: var(--light-accent);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+        }
+
+        .footer-social a {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1.2rem;
+            transition: color 0.3s;
+        }
+
+        .light-theme .footer-social a {
+            color: var(--light-text);
+            opacity: 0.7;
+        }
+
+        .footer-social a:hover {
+            color: var(--neon-blue);
+        }
+
+        .light-theme .footer-social a:hover {
+            color: var(--light-accent);
+        }
+
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .light-theme .planet {
+            display: none;
+        }
+
+        .planet-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            right: 5%;
+            background: radial-gradient(circle at 30% 30%, var(--planet-orange), #ff4e00);
+            box-shadow: 0 0 50px var(--planet-orange);
+        }
+
+        .planet-2 {
+            width: 100px;
+            height: 100px;
+            bottom: 15%;
+            left: 5%;
+            background: radial-gradient(circle at 30% 30%, var(--planet-yellow), #ff9e00);
+            box-shadow: 0 0 30px var(--planet-yellow);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes grow {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes orbit {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.2; }
+            50% { opacity: 1; }
+            100% { opacity: 0.2; }
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .maps-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .planet-1, .planet-2 {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav ul {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .value {
+                font-size: 2rem;
+            }
+            
+            .forecast-cards {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .footer-links {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="planet planet-1"></div>
+    <div class="planet planet-2"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-satellite logo-icon"></i>
+                <h1>ONO Forecast</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-chart-line"></i> Analytics</a></li>
+                    <li><a href="#"><i class="fas fa-map-marked-alt"></i> Maps</a></li>
+                    <li><a href="#"><i class="fas fa-satellite-dish"></i> Data Sources</a></li>
+                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                </ul>
+            </nav>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon" id="themeIcon"></i>
+                <span id="themeText">Dark Mode</span>
+            </button>
+        </header>
+
+        <div class="city-selector">
+            <label for="citySelect"><i class="fas fa-city"></i> Select City:</label>
+            <select id="citySelect">
+                <option value="delhi">Delhi</option>
+                <option value="mumbai">Mumbai</option>
+                <option value="chennai">Chennai</option>
+                <option value="kolkata">Kolkata</option>
+                <option value="bangalore">Bangalore</option>
+                <option value="hyderabad">Hyderabad</option>
+            </select>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-sun"></i> Ground-level O3</h2>
+                    <div class="status good">Good</div>
+                </div>
+                <div class="value">42.3 ppb</div>
+                <div class="trend down">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Decreasing by 5.2%</span>
+                </div>
+                <div class="chart-container">
+                    <div class="chart" id="o3Chart">
+                        <!-- O3 chart bars will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title"><i class="fas fa-industry"></i> Nitrogen Dioxide (NO2)</h2>
+                    <div class="status moderate">Moderate</div>
+                </div>
+                <div class="value">28.7 ppb</div>
+                <div class="trend up">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Increasing by 3.1%</span>
+                </div>
+                <div class="chart-container">
+                    <div class="chart" id="no2Chart">
+                        <!-- NO2 chart bars will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="maps-container">
+            <div class="map-container">
+                <div class="map-overlay">
+                    <div class="map-title">O3 Concentration Map</div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--success);"></div>
+                            <span>Good (0-50 ppb)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--warning);"></div>
+                            <span>Moderate (51-100 ppb)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--danger);"></div>
+                            <span>Poor (101+ ppb)</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="o3Map" class="map-visualization"></div>
+            </div>
+
+            <div class="map-container">
+                <div class="map-overlay">
+                    <div class="map-title">NO2 Concentration Map</div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--success);"></div>
+                            <span>Good (0-20 ppb)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--warning);"></div>
+                            <span>Moderate (21-40 ppb)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--danger);"></div>
+                            <span>Poor (41+ ppb)</span>
+                        </div>
+                    </div>
+                </div>
+                <div id="no2Map" class="map-visualization"></div>
+            </div>
+        </div>
+
+        <div class="forecast-container">
+            <h2 class="forecast-title"><i class="fas fa-clock"></i> 24-Hour Forecast</h2>
+            <div class="forecast-cards" id="forecastCards">
+                <!-- Forecast cards will be generated by JavaScript -->
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">About</a>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            <p style="margin-top: 20px;">&copy; 2025 ONO Forecast. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // Create starry background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const starCount = 200;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                
+                const size = Math.random() * 3;
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const delay = Math.random() * 5;
+                
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${left}%`;
+                star.style.top = `${top}%`;
+                star.style.animationDelay = `${delay}s`;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Theme toggle functionality
+        function setupThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            const body = document.body;
+
+            // Check for saved theme preference or default to dark
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            if (savedTheme === 'light') {
+                body.classList.add('light-theme');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                themeText.textContent = 'Light Mode';
+            }
+
+            themeToggle.addEventListener('click', () => {
+                body.classList.toggle('light-theme');
+                
+                if (body.classList.contains('light-theme')) {
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                    themeText.textContent = 'Light Mode';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                    themeText.textContent = 'Dark Mode';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+        }
+
+        // City data with coordinates and zoom levels
+        const cityData = {
+            delhi: {
+                name: "Delhi",
+                center: [28.6139, 77.2090],
+                zoom: 10,
+                o3Data: [45, 48, 52, 58, 62, 65, 68, 72, 75, 78, 80, 82, 85, 83, 80, 78, 75, 72, 68, 65, 60, 55, 50, 48],
+                no2Data: [25, 28, 32, 38, 42, 48, 52, 58, 62, 65, 68, 72, 75, 72, 68, 65, 60, 55, 50, 48, 45, 42, 38, 35],
+                o3Value: 42.3,
+                no2Value: 28.7,
+                o3Status: "good",
+                no2Status: "moderate"
+            },
+            mumbai: {
+                name: "Mumbai",
+                center: [19.0760, 72.8777],
+                zoom: 10,
+                o3Data: [42, 45, 48, 52, 55, 58, 62, 65, 68, 72, 75, 78, 80, 78, 75, 72, 68, 65, 62, 58, 55, 52, 48, 45],
+                no2Data: [22, 25, 28, 32, 35, 38, 42, 45, 48, 52, 55, 58, 62, 58, 55, 52, 48, 45, 42, 38, 35, 32, 28, 25],
+                o3Value: 38.5,
+                no2Value: 32.1,
+                o3Status: "good",
+                no2Status: "moderate"
+            },
+            chennai: {
+                name: "Chennai",
+                center: [13.0827, 80.2707],
+                zoom: 10,
+                o3Data: [38, 42, 45, 48, 52, 55, 58, 62, 65, 68, 72, 75, 78, 75, 72, 68, 65, 62, 58, 55, 52, 48, 45, 42],
+                no2Data: [18, 22, 25, 28, 32, 35, 38, 42, 45, 48, 52, 55, 58, 55, 52, 48, 45, 42, 38, 35, 32, 28, 25, 22],
+                o3Value: 35.2,
+                no2Value: 25.8,
+                o3Status: "good",
+                no2Status: "good"
+            },
+            kolkata: {
+                name: "Kolkata",
+                center: [22.5726, 88.3639],
+                zoom: 10,
+                o3Data: [40, 42, 45, 48, 52, 55, 58, 62, 65, 68, 72, 75, 78, 75, 72, 68, 65, 62, 58, 55, 52, 48, 45, 42],
+                no2Data: [20, 22, 25, 28, 32, 35, 38, 42, 45, 48, 52, 55, 58, 55, 52, 48, 45, 42, 38, 35, 32, 28, 25, 22],
+                o3Value: 48.7,
+                no2Value: 35.4,
+                o3Status: "moderate",
+                no2Status: "moderate"
+            },
+            bangalore: {
+                name: "Bangalore",
+                center: [12.9716, 77.5946],
+                zoom: 10,
+                o3Data: [35, 38, 42, 45, 48, 52, 55, 58, 62, 65, 68, 72, 75, 72, 68, 65, 62, 58, 55, 52, 48, 45, 42, 38],
+                no2Data: [15, 18, 22, 25, 28, 32, 35, 38, 42, 45, 48, 52, 55, 52, 48, 45, 42, 38, 35, 32, 28, 25, 22, 18],
+                o3Value: 32.1,
+                no2Value: 22.3,
+                o3Status: "good",
+                no2Status: "good"
+            },
+            hyderabad: {
+                name: "Hyderabad",
+                center: [17.3850, 78.4867],
+                zoom: 10,
+                o3Data: [38, 40, 42, 45, 48, 52, 55, 58, 62, 65, 68, 72, 75, 72, 68, 65, 62, 58, 55, 52, 48, 45, 42, 40],
+                no2Data: [18, 20, 22, 25, 28, 32, 35, 38, 42, 45, 48, 52, 55, 52, 48, 45, 42, 38, 35, 32, 28, 25, 22, 20],
+                o3Value: 40.5,
+                no2Value: 28.9,
+                o3Status: "good",
+                no2Status: "moderate"
+            }
+        };
+
+        // Initialize Maps
+        let o3Map, no2Map;
+
+        function initializeMaps() {
+            // India coordinates
+            const indiaCoords = [20.5937, 78.9629];
+            
+            // O3 Map
+            o3Map = L.map('o3Map', {
+                center: indiaCoords,
+                zoom: 5,
+                zoomControl: false
+            });
+
+            // NO2 Map
+            no2Map = L.map('no2Map', {
+                center: indiaCoords,
+                zoom: 5,
+                zoomControl: false
+            });
+
+            // Add tile layer to both maps
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(o3Map);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(no2Map);
+
+            // Add zoom controls
+            L.control.zoom({ position: 'bottomright' }).addTo(o3Map);
+            L.control.zoom({ position: 'bottomright' }).addTo(no2Map);
+
+            // Add markers for all cities
+            Object.values(cityData).forEach(city => {
+                const o3Color = city.o3Value <= 50 ? 'var(--success)' : city.o3Value <= 100 ? 'var(--warning)' : 'var(--danger)';
+                const no2Color = city.no2Value <= 20 ? 'var(--success)' : city.no2Value <= 40 ? 'var(--warning)' : 'var(--danger)';
+                
+                // O3 Marker
+                L.circleMarker(city.center, {
+                    color: o3Color,
+                    fillColor: o3Color,
+                    fillOpacity: 0.7,
+                    radius: 10
+                }).addTo(o3Map)
+                .bindPopup(`
+                    <div style="color: #333;">
+                        <h3 style="margin: 0 0 10px 0; color: var(--space-blue);">${city.name}</h3>
+                        <p style="margin: 5px 0;"><strong>O3:</strong> ${city.o3Value} ppb</p>
+                        <p style="margin: 5px 0;"><strong>Status:</strong> ${city.o3Status.toUpperCase()}</p>
+                    </div>
+                `);
+
+                // NO2 Marker
+                L.circleMarker(city.center, {
+                    color: no2Color,
+                    fillColor: no2Color,
+                    fillOpacity: 0.7,
+                    radius: 10
+                }).addTo(no2Map)
+                .bindPopup(`
+                    <div style="color: #333;">
+                        <h3 style="margin: 0 0 10px 0; color: var(--space-blue);">${city.name}</h3>
+                        <p style="margin: 5px 0;"><strong>NO2:</strong> ${city.no2Value} ppb</p>
+                        <p style="margin: 5px 0;"><strong>Status:</strong> ${city.no2Status.toUpperCase()}</p>
+                    </div>
+                `);
+            });
+        }
+
+        // Function to zoom to selected city
+        function zoomToCity(cityName) {
+            const city = cityData[cityName];
+            if (city) {
+                // Smoothly fly to the selected city on both maps
+                o3Map.flyTo(city.center, city.zoom);
+                no2Map.flyTo(city.center, city.zoom);
+                
+                // Update dashboard data for selected city
+                updateDashboard(cityName);
+            }
+        }
+
+        // Update dashboard with city data
+        function updateDashboard(cityName) {
+            const city = cityData[cityName];
+            if (!city) return;
+
+            // Update O3 card
+            document.querySelector('.card:first-child .value').textContent = `${city.o3Value} ppb`;
+            document.querySelector('.card:first-child .status').className = `status ${city.o3Status}`;
+            document.querySelector('.card:first-child .status').textContent = city.o3Status.charAt(0).toUpperCase() + city.o3Status.slice(1);
+
+            // Update NO2 card
+            document.querySelector('.card:nth-child(2) .value').textContent = `${city.no2Value} ppb`;
+            document.querySelector('.card:nth-child(2) .status').className = `status ${city.no2Status}`;
+            document.querySelector('.card:nth-child(2) .status').textContent = city.no2Status.charAt(0).toUpperCase() + city.no2Status.slice(1);
+
+            // Update charts
+            updateCharts(cityName);
+            
+            // Update forecast cards
+            updateForecastCards(cityName);
+        }
+
+        // Generate time labels for charts and forecast cards
+        function generateTimeLabels() {
+            const now = new Date();
+            const labels = [];
+            
+            for (let i = 0; i < 24; i++) {
+                const hour = (now.getHours() + i) % 24;
+                labels.push(`${hour}:00`);
+            }
+            
+            return labels;
+        }
+
+        // Update charts with data for selected city
+        function updateCharts(city) {
+            const data = cityData[city];
+            const timeLabels = generateTimeLabels();
+            
+            // Update O3 chart
+            const o3Chart = document.getElementById('o3Chart');
+            o3Chart.innerHTML = '';
+            
+            data.o3Data.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.classList.add('bar');
+                bar.style.height = `${value}%`;
+                
+                const label = document.createElement('div');
+                label.classList.add('bar-label');
+                label.textContent = timeLabels[index];
+                
+                bar.appendChild(label);
+                o3Chart.appendChild(bar);
+            });
+            
+            // Update NO2 chart
+            const no2Chart = document.getElementById('no2Chart');
+            no2Chart.innerHTML = '';
+            
+            data.no2Data.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.classList.add('bar');
+                bar.style.height = `${value}%`;
+                
+                const label = document.createElement('div');
+                label.classList.add('bar-label');
+                label.textContent = timeLabels[index];
+                
+                bar.appendChild(label);
+                no2Chart.appendChild(bar);
+            });
+        }
+
+        // Update forecast cards based on selected city
+        function updateForecastCards(city) {
+            const forecastCards = document.getElementById('forecastCards');
+            forecastCards.innerHTML = '';
+            
+            const data = cityData[city];
+            const timeLabels = generateTimeLabels();
+            
+            for (let i = 0; i < 24; i += 3) {
+                const hour = timeLabels[i];
+                const o3Value = data.o3Data[i];
+                const no2Value = data.no2Data[i];
+                
+                let o3AQI = 'good';
+                let no2AQI = 'good';
+                
+                if (o3Value > 70) o3AQI = 'poor';
+                else if (o3Value > 50) o3AQI = 'moderate';
+                
+                if (no2Value > 60) no2AQI = 'poor';
+                else if (no2Value > 40) no2AQI = 'moderate';
+                
+                const card = document.createElement('div');
+                card.className = 'forecast-card';
+                card.innerHTML = `
+                    <div class="forecast-time">${hour}</div>
+                    <div class="forecast-values">
+                        <div class="forecast-value">
+                            <div class="forecast-pollutant">O3</div>
+                            <div class="forecast-amount o3-value">${o3Value} ppb</div>
+                            <span class="aqi-badge ${o3AQI}">${o3AQI.toUpperCase()}</span>
+                        </div>
+                        <div class="forecast-value">
+                            <div class="forecast-pollutant">NO2</div>
+                            <div class="forecast-amount no2-value">${no2Value} ppb</div>
+                            <span class="aqi-badge ${no2AQI}">${no2AQI.toUpperCase()}</span>
+                        </div>
+                    </div>
+                `;
+                
+                forecastCards.appendChild(card);
+            }
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            createStars();
+            setupThemeToggle();
+            
+            // Initialize maps
+            initializeMaps();
+            
+            // Set initial city data
+            updateDashboard('delhi');
+            
+            // Handle city selection change
+            const citySelect = document.getElementById('citySelect');
+            citySelect.addEventListener('change', function() {
+                const selectedCity = this.value;
+                zoomToCity(selectedCity);
+            });
+            
+            // Simulate real-time data updates
+            setInterval(updateValues, 5000);
+        });
+        
+        // Function to simulate updating values
+        function updateValues() {
+            const o3Value = document.querySelector('.card:first-child .value');
+            const no2Value = document.querySelector('.card:nth-child(2) .value');
+            
+            // Generate random values within realistic ranges
+            const randomO3 = (Math.random() * 10 + 38).toFixed(1);
+            const randomNO2 = (Math.random() * 8 + 25).toFixed(1);
+            
+            // Add animation effect
+            o3Value.style.transform = 'scale(1.1)';
+            no2Value.style.transform = 'scale(1.1)';
+            
+            setTimeout(() => {
+                o3Value.textContent = `${randomO3} ppb`;
+                no2Value.textContent = `${randomNO2} ppb`;
+                
+                o3Value.style.transform = 'scale(1)';
+                no2Value.style.transform = 'scale(1)';
+            }, 300);
+        }
+    </script>
+</body>
+</html>
