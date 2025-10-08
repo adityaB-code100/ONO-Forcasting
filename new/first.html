@@ -582,23 +582,19 @@
 
         .forecast-cards {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
         }
 
         .forecast-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
             transition: all 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 160px;
-            justify-content: space-between;
         }
 
         .light-theme .forecast-card {
@@ -634,7 +630,6 @@
             font-size: 1rem;
             margin-bottom: 10px;
             color: var(--neon-blue);
-            font-weight: 600;
         }
 
         .light-theme .forecast-time {
@@ -644,14 +639,13 @@
         .forecast-values {
             display: flex;
             justify-content: space-around;
-            margin: 10px 0;
+            margin: 15px 0;
         }
 
         .forecast-value {
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex: 1;
         }
 
         .forecast-pollutant {
@@ -661,9 +655,8 @@
         }
 
         .forecast-amount {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 5px;
         }
 
         .o3-value {
@@ -684,9 +677,9 @@
 
         .aqi-badge {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 3px 10px;
             border-radius: 12px;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             font-weight: bold;
             margin-top: 5px;
         }
@@ -869,13 +862,6 @@
             100% { opacity: 0.2; }
         }
 
-        /* Responsive design for different screen sizes */
-        @media (max-width: 1200px) {
-            .forecast-cards {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
         @media (max-width: 1024px) {
             .dashboard {
                 grid-template-columns: 1fr;
@@ -883,10 +869,6 @@
             
             .maps-container {
                 grid-template-columns: 1fr;
-            }
-            
-            .forecast-cards {
-                grid-template-columns: repeat(4, 1fr);
             }
             
             .planet-1, .planet-2 {
@@ -911,7 +893,7 @@
             }
             
             .forecast-cards {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
             
             .footer-content {
@@ -923,50 +905,14 @@
                 justify-content: center;
             }
         }
-
-        @media (max-width: 576px) {
-            .forecast-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .forecast-card {
-                padding: 12px;
-                min-height: 150px;
-            }
-            
-            .forecast-time {
-                font-size: 0.9rem;
-            }
-            
-            .forecast-amount {
-                font-size: 1rem;
-            }
-            
-            .aqi-badge {
-                font-size: 0.6rem;
-                padding: 2px 6px;
-            }
-        }
-
-        @media (max-width: 400px) {
-            .forecast-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .forecast-card {
-                min-height: 140px;
-            }
-        }
     </style>
 </head>
 <body>
-    <!-- Background elements with stars and planets -->
     <div class="stars" id="stars"></div>
     <div class="planet planet-1"></div>
     <div class="planet planet-2"></div>
     
     <div class="container">
-        <!-- Header with logo, navigation, and theme toggle -->
         <header>
             <div class="logo">
                 <i class="fas fa-satellite logo-icon"></i>
@@ -987,7 +933,6 @@
             </button>
         </header>
 
-        <!-- City selection dropdown -->
         <div class="city-selector">
             <label for="citySelect"><i class="fas fa-city"></i> Select City:</label>
             <select id="citySelect">
@@ -1000,7 +945,6 @@
             </select>
         </div>
 
-        <!-- Main dashboard with O3 and NO2 cards -->
         <div class="dashboard">
             <div class="card">
                 <div class="card-header">
@@ -1037,7 +981,6 @@
             </div>
         </div>
 
-        <!-- Maps section showing O3 and NO2 concentration -->
         <div class="maps-container">
             <div class="map-container">
                 <div class="map-overlay">
@@ -1082,15 +1025,13 @@
             </div>
         </div>
 
-        <!-- 24-hour forecast section with 12 time-based cards (every 2 hours) -->
         <div class="forecast-container">
             <h2 class="forecast-title"><i class="fas fa-clock"></i> 24-Hour Forecast</h2>
             <div class="forecast-cards" id="forecastCards">
-                <!-- 12 forecast cards will be generated by JavaScript (every 2 hours) -->
+                <!-- Forecast cards will be generated by JavaScript -->
             </div>
         </div>
 
-        <!-- Footer with links and copyright -->
         <footer>
             <div class="footer-content">
                 <div class="footer-links">
@@ -1110,11 +1051,11 @@
         </footer>
     </div>
 
-    <!-- Leaflet JavaScript library for maps -->
+    <!-- Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
     <script>
-        // Create starry background animation
+        // Create starry background
         function createStars() {
             const starsContainer = document.getElementById('stars');
             const starCount = 200;
@@ -1349,12 +1290,12 @@
             updateForecastCards(cityName);
         }
 
-        // Generate time labels for charts and forecast cards (every 2 hours)
+        // Generate time labels for charts and forecast cards
         function generateTimeLabels() {
             const now = new Date();
             const labels = [];
             
-            for (let i = 0; i < 24; i += 2) {
+            for (let i = 0; i < 24; i++) {
                 const hour = (now.getHours() + i) % 24;
                 labels.push(`${hour}:00`);
             }
@@ -1402,7 +1343,7 @@
             });
         }
 
-        // Update forecast cards based on selected city (12 cards, every 2 hours)
+        // Update forecast cards based on selected city
         function updateForecastCards(city) {
             const forecastCards = document.getElementById('forecastCards');
             forecastCards.innerHTML = '';
@@ -1410,11 +1351,10 @@
             const data = cityData[city];
             const timeLabels = generateTimeLabels();
             
-            // Create 12 forecast cards (every 2 hours)
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 24; i += 3) {
                 const hour = timeLabels[i];
-                const o3Value = data.o3Data[i*2]; // Multiply by 2 to get every 2 hours
-                const no2Value = data.no2Data[i*2]; // Multiply by 2 to get every 2 hours
+                const o3Value = data.o3Data[i];
+                const no2Value = data.no2Data[i];
                 
                 let o3AQI = 'good';
                 let no2AQI = 'good';

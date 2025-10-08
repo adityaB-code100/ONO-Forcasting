@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
+        /* Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -50,6 +51,15 @@
             color: var(--light-text);
         }
 
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Star Background */
         .stars {
             position: fixed;
             top: 0;
@@ -70,22 +80,16 @@
             animation: twinkle 5s infinite ease-in-out;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-
+        /* Header and Navigation */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
+            padding: 15px 0;
+            margin-bottom: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            animation: slideDown 1s ease;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .light-theme header {
@@ -95,11 +99,11 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .logo-icon {
-            font-size: 2.5rem;
+            font-size: 2rem;
             color: var(--neon-blue);
             animation: orbit 10s infinite linear;
             position: relative;
@@ -109,24 +113,8 @@
             color: var(--light-accent);
         }
 
-        .logo-icon::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 70px;
-            height: 70px;
-            border: 2px solid rgba(0, 243, 255, 0.2);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .light-theme .logo-icon::after {
-            border-color: rgba(59, 130, 246, 0.2);
-        }
-
         .logo h1 {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: 600;
             background: linear-gradient(to right, var(--neon-blue), var(--neon-purple));
             -webkit-background-clip: text;
@@ -141,6 +129,58 @@
             text-shadow: none;
         }
 
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .light-theme .menu-toggle {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+            color: var(--light-text);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Navigation */
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        nav a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            padding: 5px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .light-theme nav a {
+            color: var(--light-text);
+            opacity: 0.8;
+        }
+
+        nav a:hover {
+            color: var(--neon-blue);
+        }
+
+        .light-theme nav a:hover {
+            color: var(--light-accent);
+        }
+
+        /* Theme Toggle */
         .theme-toggle {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -170,60 +210,13 @@
             background: var(--light-hover);
         }
 
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 30px;
-        }
-
-        nav a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            position: relative;
-            padding: 5px 10px;
-        }
-
-        .light-theme nav a {
-            color: var(--light-text);
-            opacity: 0.8;
-        }
-
-        nav a:hover {
-            color: var(--neon-blue);
-        }
-
-        .light-theme nav a:hover {
-            color: var(--light-accent);
-        }
-
-        nav a::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--neon-blue);
-            transition: width 0.3s;
-            box-shadow: 0 0 8px var(--neon-blue);
-        }
-
-        .light-theme nav a::after {
-            background: var(--light-accent);
-            box-shadow: 0 0 8px var(--light-accent);
-        }
-
-        nav a:hover::after {
-            width: 100%;
-        }
-
+        /* City Selector */
         .city-selector {
             margin: 20px 0;
             display: flex;
             align-items: center;
             gap: 15px;
+            flex-wrap: wrap;
         }
 
         .city-selector label {
@@ -244,6 +237,7 @@
             font-size: 1rem;
             cursor: pointer;
             transition: all 0.3s;
+            min-width: 200px;
         }
 
         .light-theme .city-selector select {
@@ -253,39 +247,22 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .city-selector select:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .light-theme .city-selector select:hover {
-            background: var(--light-hover);
-        }
-
-        .city-selector select:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px var(--neon-blue);
-        }
-
-        .light-theme .city-selector select:focus {
-            box-shadow: 0 0 0 2px var(--light-accent);
-        }
-
+        /* Dashboard Cards */
         .dashboard {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s;
-            animation: fadeInUp 0.8s ease;
             position: relative;
             overflow: hidden;
         }
@@ -318,7 +295,7 @@
         }
 
         .card:hover {
-            transform: translateY(-10px);
+            transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
 
@@ -330,15 +307,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .card-title {
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .card-title i {
@@ -350,9 +329,9 @@
         }
 
         .status {
-            padding: 5px 15px;
+            padding: 5px 12px;
             border-radius: 20px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
         }
 
@@ -393,7 +372,7 @@
         }
 
         .value {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             margin: 15px 0;
             text-align: center;
@@ -409,8 +388,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
         .trend.up {
@@ -429,9 +409,10 @@
             color: #059669;
         }
 
+        /* Charts */
         .chart-container {
-            height: 200px;
-            margin-top: 20px;
+            height: 180px;
+            margin-top: 15px;
             position: relative;
             overflow: hidden;
         }
@@ -440,8 +421,8 @@
             height: 100%;
             display: flex;
             align-items: flex-end;
-            gap: 10px;
-            padding: 0 10px;
+            gap: 8px;
+            padding: 0 8px;
         }
 
         .bar {
@@ -465,7 +446,7 @@
             left: 0;
             right: 0;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.7);
         }
 
@@ -474,20 +455,20 @@
             opacity: 0.7;
         }
 
+        /* Maps */
         .maps-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .map-container {
-            height: 400px;
+            height: 350px;
             background: rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             overflow: hidden;
             position: relative;
-            animation: zoomIn 1s ease;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -499,10 +480,11 @@
 
         .map-overlay {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 15px;
+            left: 15px;
+            right: 15px;
             background: rgba(0, 0, 0, 0.6);
-            padding: 15px;
+            padding: 12px;
             border-radius: 10px;
             z-index: 1000;
             backdrop-filter: blur(5px);
@@ -515,8 +497,8 @@
         }
 
         .map-title {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
             color: var(--neon-blue);
         }
 
@@ -526,7 +508,7 @@
 
         .legend {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
@@ -534,13 +516,13 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         .legend-color {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
         }
 
         .map-visualization {
@@ -557,23 +539,18 @@
             background: linear-gradient(45deg, #f8fafc, #e2e8f0);
         }
 
-        .leaflet-popup-content {
-            color: #333;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
+        /* Forecast */
         .forecast-container {
-            grid-column: 1 / -1;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .forecast-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
             color: var(--neon-blue);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .light-theme .forecast-title {
@@ -582,7 +559,7 @@
 
         .forecast-cards {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 15px;
         }
 
@@ -595,10 +572,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 160px;
-            justify-content: space-between;
         }
 
         .light-theme .forecast-card {
@@ -631,10 +604,9 @@
         }
 
         .forecast-time {
-            font-size: 1rem;
-            margin-bottom: 10px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
             color: var(--neon-blue);
-            font-weight: 600;
         }
 
         .light-theme .forecast-time {
@@ -644,26 +616,24 @@
         .forecast-values {
             display: flex;
             justify-content: space-around;
-            margin: 10px 0;
+            margin: 12px 0;
         }
 
         .forecast-value {
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex: 1;
         }
 
         .forecast-pollutant {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             margin-bottom: 5px;
             opacity: 0.8;
         }
 
         .forecast-amount {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
-            margin-bottom: 5px;
         }
 
         .o3-value {
@@ -685,7 +655,7 @@
         .aqi-badge {
             display: inline-block;
             padding: 3px 8px;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 0.65rem;
             font-weight: bold;
             margin-top: 5px;
@@ -721,13 +691,14 @@
             color: #dc2626;
         }
 
+        /* Footer */
         footer {
             text-align: center;
-            padding: 30px 0;
+            padding: 25px 0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 40px;
+            margin-top: 30px;
             color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .light-theme footer {
@@ -741,12 +712,13 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 15px;
         }
 
         .footer-links {
             display: flex;
-            gap: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
         }
 
         .footer-links a {
@@ -770,12 +742,12 @@
 
         .footer-social {
             display: flex;
-            gap: 15px;
+            gap: 12px;
         }
 
         .footer-social a {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition: color 0.3s;
         }
 
@@ -792,6 +764,7 @@
             color: var(--light-accent);
         }
 
+        /* Planets (decorative elements) */
         .planet {
             position: absolute;
             border-radius: 50%;
@@ -804,23 +777,24 @@
         }
 
         .planet-1 {
-            width: 200px;
-            height: 200px;
-            top: 10%;
-            right: 5%;
+            width: 150px;
+            height: 150px;
+            top: 5%;
+            right: 3%;
             background: radial-gradient(circle at 30% 30%, var(--planet-orange), #ff4e00);
-            box-shadow: 0 0 50px var(--planet-orange);
+            box-shadow: 0 0 30px var(--planet-orange);
         }
 
         .planet-2 {
-            width: 100px;
-            height: 100px;
-            bottom: 15%;
-            left: 5%;
+            width: 80px;
+            height: 80px;
+            bottom: 10%;
+            left: 3%;
             background: radial-gradient(circle at 30% 30%, var(--planet-yellow), #ff9e00);
-            box-shadow: 0 0 30px var(--planet-yellow);
+            box-shadow: 0 0 20px var(--planet-yellow);
         }
 
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -859,7 +833,7 @@
 
         @keyframes float {
             0% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(5deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
             100% { transform: translateY(0) rotate(0deg); }
         }
 
@@ -869,110 +843,182 @@
             100% { opacity: 0.2; }
         }
 
-        /* Responsive design for different screen sizes */
-        @media (max-width: 1200px) {
-            .forecast-cards {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
+        /* Responsive Design */
+        /* Tablets and Small Screens */
         @media (max-width: 1024px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-            
-            .maps-container {
-                grid-template-columns: 1fr;
-            }
-            
-            .forecast-cards {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            
             .planet-1, .planet-2 {
                 display: none;
             }
         }
 
+        /* Mobile Devices */
         @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
             header {
                 flex-direction: column;
-                gap: 20px;
-            }
-            
-            nav ul {
+                align-items: flex-start;
                 gap: 15px;
-                flex-wrap: wrap;
+            }
+
+            .menu-toggle {
+                display: block;
+                position: absolute;
+                top: 15px;
+                right: 15px;
+            }
+
+            nav {
+                width: 100%;
+                display: none;
+            }
+
+            nav.active {
+                display: block;
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            nav a {
+                padding: 10px;
+                border-radius: 8px;
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .light-theme nav a {
+                background: rgba(0, 0, 0, 0.05);
+            }
+
+            .theme-toggle {
+                width: 100%;
                 justify-content: center;
             }
-            
-            .value {
-                font-size: 2rem;
+
+            .city-selector {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
-            
+
+            .city-selector select {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .maps-container {
+                grid-template-columns: 1fr;
+            }
+
+            .map-container {
+                height: 300px;
+            }
+
             .forecast-cards {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
-            
+
             .footer-content {
                 flex-direction: column;
                 text-align: center;
+                gap: 20px;
             }
-            
+
             .footer-links {
                 justify-content: center;
             }
         }
 
-        @media (max-width: 576px) {
+        /* Small Mobile Devices */
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+
+            .logo-icon {
+                font-size: 1.7rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .value {
+                font-size: 1.7rem;
+            }
+
+            .chart-container {
+                height: 150px;
+            }
+
+            .map-container {
+                height: 250px;
+            }
+
             .forecast-cards {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
-            
+
             .forecast-card {
-                padding: 12px;
-                min-height: 150px;
+                padding: 10px;
             }
-            
-            .forecast-time {
-                font-size: 0.9rem;
-            }
-            
-            .forecast-amount {
-                font-size: 1rem;
-            }
-            
-            .aqi-badge {
-                font-size: 0.6rem;
-                padding: 2px 6px;
+
+            .forecast-values {
+                flex-direction: column;
+                gap: 8px;
             }
         }
 
-        @media (max-width: 400px) {
-            .forecast-cards {
-                grid-template-columns: 1fr;
+        /* Very Small Mobile Devices */
+        @media (max-width: 360px) {
+            .container {
+                padding: 8px;
             }
-            
-            .forecast-card {
-                min-height: 140px;
+
+            .card {
+                padding: 12px;
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+            }
+
+            .value {
+                font-size: 1.5rem;
+            }
+
+            .forecast-cards {
+                grid-template-columns: 1fr 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Background elements with stars and planets -->
     <div class="stars" id="stars"></div>
     <div class="planet planet-1"></div>
     <div class="planet planet-2"></div>
     
     <div class="container">
-        <!-- Header with logo, navigation, and theme toggle -->
         <header>
             <div class="logo">
                 <i class="fas fa-satellite logo-icon"></i>
                 <h1>ONO Forecast</h1>
             </div>
-            <nav>
+            
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <nav id="mainNav">
                 <ul>
                     <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
                     <li><a href="#"><i class="fas fa-chart-line"></i> Analytics</a></li>
@@ -981,13 +1027,13 @@
                     <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
                 </ul>
             </nav>
+            
             <button class="theme-toggle" id="themeToggle">
                 <i class="fas fa-moon" id="themeIcon"></i>
                 <span id="themeText">Dark Mode</span>
             </button>
         </header>
 
-        <!-- City selection dropdown -->
         <div class="city-selector">
             <label for="citySelect"><i class="fas fa-city"></i> Select City:</label>
             <select id="citySelect">
@@ -1000,7 +1046,6 @@
             </select>
         </div>
 
-        <!-- Main dashboard with O3 and NO2 cards -->
         <div class="dashboard">
             <div class="card">
                 <div class="card-header">
@@ -1037,7 +1082,6 @@
             </div>
         </div>
 
-        <!-- Maps section showing O3 and NO2 concentration -->
         <div class="maps-container">
             <div class="map-container">
                 <div class="map-overlay">
@@ -1082,15 +1126,13 @@
             </div>
         </div>
 
-        <!-- 24-hour forecast section with 12 time-based cards (every 2 hours) -->
         <div class="forecast-container">
             <h2 class="forecast-title"><i class="fas fa-clock"></i> 24-Hour Forecast</h2>
             <div class="forecast-cards" id="forecastCards">
-                <!-- 12 forecast cards will be generated by JavaScript (every 2 hours) -->
+                <!-- Forecast cards will be generated by JavaScript -->
             </div>
         </div>
 
-        <!-- Footer with links and copyright -->
         <footer>
             <div class="footer-content">
                 <div class="footer-links">
@@ -1110,20 +1152,20 @@
         </footer>
     </div>
 
-    <!-- Leaflet JavaScript library for maps -->
+    <!-- Leaflet JavaScript -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
     <script>
-        // Create starry background animation
+        // Create starry background
         function createStars() {
             const starsContainer = document.getElementById('stars');
-            const starCount = 200;
+            const starCount = 150;
             
             for (let i = 0; i < starCount; i++) {
                 const star = document.createElement('div');
                 star.classList.add('star');
                 
-                const size = Math.random() * 3;
+                const size = Math.random() * 2;
                 const left = Math.random() * 100;
                 const top = Math.random() * 100;
                 const delay = Math.random() * 5;
@@ -1136,6 +1178,27 @@
                 
                 starsContainer.appendChild(star);
             }
+        }
+
+        // Mobile menu toggle
+        function setupMobileMenu() {
+            const menuToggle = document.getElementById('menuToggle');
+            const mainNav = document.getElementById('mainNav');
+            
+            menuToggle.addEventListener('click', () => {
+                mainNav.classList.toggle('active');
+                menuToggle.innerHTML = mainNav.classList.contains('active') 
+                    ? '<i class="fas fa-times"></i>' 
+                    : '<i class="fas fa-bars"></i>';
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!mainNav.contains(e.target) && !menuToggle.contains(e.target)) {
+                    mainNav.classList.remove('active');
+                    menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+                }
+            });
         }
 
         // Theme toggle functionality
@@ -1287,7 +1350,7 @@
                     color: o3Color,
                     fillColor: o3Color,
                     fillOpacity: 0.7,
-                    radius: 10
+                    radius: 8
                 }).addTo(o3Map)
                 .bindPopup(`
                     <div style="color: #333;">
@@ -1302,7 +1365,7 @@
                     color: no2Color,
                     fillColor: no2Color,
                     fillOpacity: 0.7,
-                    radius: 10
+                    radius: 8
                 }).addTo(no2Map)
                 .bindPopup(`
                     <div style="color: #333;">
@@ -1349,12 +1412,12 @@
             updateForecastCards(cityName);
         }
 
-        // Generate time labels for charts and forecast cards (every 2 hours)
+        // Generate time labels for charts and forecast cards
         function generateTimeLabels() {
             const now = new Date();
             const labels = [];
             
-            for (let i = 0; i < 24; i += 2) {
+            for (let i = 0; i < 24; i++) {
                 const hour = (now.getHours() + i) % 24;
                 labels.push(`${hour}:00`);
             }
@@ -1402,7 +1465,7 @@
             });
         }
 
-        // Update forecast cards based on selected city (12 cards, every 2 hours)
+        // Update forecast cards based on selected city
         function updateForecastCards(city) {
             const forecastCards = document.getElementById('forecastCards');
             forecastCards.innerHTML = '';
@@ -1410,11 +1473,10 @@
             const data = cityData[city];
             const timeLabels = generateTimeLabels();
             
-            // Create 12 forecast cards (every 2 hours)
-            for (let i = 0; i < 12; i++) {
+            for (let i = 0; i < 24; i += 3) {
                 const hour = timeLabels[i];
-                const o3Value = data.o3Data[i*2]; // Multiply by 2 to get every 2 hours
-                const no2Value = data.no2Data[i*2]; // Multiply by 2 to get every 2 hours
+                const o3Value = data.o3Data[i];
+                const no2Value = data.no2Data[i];
                 
                 let o3AQI = 'good';
                 let no2AQI = 'good';
@@ -1450,6 +1512,7 @@
         // Initialize the dashboard
         document.addEventListener('DOMContentLoaded', function() {
             createStars();
+            setupMobileMenu();
             setupThemeToggle();
             
             // Initialize maps
